@@ -16,10 +16,30 @@
 
 # This variable is set first, so it can be overridden
 # by BoardConfigVendor.mk
--include device/samsung/smdk4412-common/BoardCommonConfig.mk
--include device/samsung/smdk4412-qcom-common/BoardCommonConfig.mk
 
--include device/samsung/i9305/BoardCommonConfig.mk
+LOCAL_PATH := device/samsung/i9305
 
-# inherit from the proprietary version
--include vendor/samsung/i9305/BoardConfigVendor.mk
+# Bluetooth
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(LOCAL_PATH)/bluetooth
+
+# Camera
+COMMON_GLOBAL_CFLAGS += -DCAMERA_WITH_CITYID_PARAM
+
+TARGET_REQUIRES_SYNCHRONOUS_SETSURFACE := true
+
+# GPS
+BOARD_GPS_SET_PRIVACY := true
+
+# Kernel
+TARGET_KERNEL_SOURCE := kernel/samsung/smdk4412
+TARGET_KERNEL_CONFIG := cyanogenmod_i9305_defconfig
+
+# Recovery
+TARGET_RECOVERY_FSTAB := device/samsung/i9305/rootdir/fstab.smdk4x12
+RECOVERY_FSTAB_VERSION := 2
+
+# assert
+TARGET_OTA_ASSERT_DEVICE := m3,m3xx,i9305,GT-I9305
+
+# Selinux
+BOARD_SEPOLICY_DIRS += device/samsung/i9305/selinux

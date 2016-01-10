@@ -23,14 +23,13 @@ DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 # currently contain all of the bitmaps at xhdpi density so
 # we do this little trick to fall back to the hdpi version
 # if the xhdpi doesn't exist.
-PRODUCT_AAPT_CONFIG := normal hdpi xhdpi
+PRODUCT_AAPT_CONFIG := normal
 PRODUCT_AAPT_PREF_CONFIG := xhdpi
 
 # Init files
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/fstab.smdk4x12:root/fstab.smdk4x12 \
     $(LOCAL_PATH)/rootdir/init.target.rc:root/init.target.rc \
-    $(LOCAL_PATH)/rootdir/lpm.rc:root/lpm.rc \
     $(LOCAL_PATH)/rootdir/ueventd.smdk4x12.rc:root/ueventd.smdk4x12.rc
 
 # Audio
@@ -73,20 +72,31 @@ PRODUCT_COPY_FILES += \
     $(NFCEE_ACCESS_PATH):system/etc/nfcee_access.xml
 
 PRODUCT_PACKAGES += \
-    com.android.nfc_extras
+    com.android.nfc_extras \
+    Stk \
+    SamsungServiceMode
 
 $(call inherit-product, vendor/cm/config/nfc_enhanced.mk)
 
+# Samsung symbols
+PRODUCT_PACKAGES += \
+    libsamsung_symbols
+
 # RIL
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.telephony.ril_class=SamsungQualcommRIL \
-    mobiledata.interfaces=pdp0,wlan0,gprs,ppp0 \
-    ro.telephony.ril.v3=newDriverCall,newDialCode
+    mobiledata.interfaces=pdp0,gprs,ppp0,rmnet0,rmnet1
+
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/bin/ks-wrapper.sh:/system/bin/ks
 
 # These are the hardware-specific features
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml \
     frameworks/native/data/etc/android.hardware.telephony.gsm.xml:system/etc/permissions/android.hardware.telephony.gsm.xml
+
+# Allow tethering without provisioning app
+PRODUCT_PROPERTY_OVERRIDES += \
+    net.tethering.noprovisioning=true
 
 # Include common makefile
 $(call inherit-product, device/samsung/smdk4412-common/common.mk)

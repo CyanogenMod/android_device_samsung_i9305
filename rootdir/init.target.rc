@@ -1,10 +1,13 @@
 import init.bt.rc
 
 on init
+    export LD_SHIM_LIBS /system/lib/libril.so|libsamsung_symbols.so
+
     # Vibetonz
     export VIBE_PIPE_PATH /dev/pipes
     mkdir /dev/pipes 0771 shell shell
 
+on post-fs-data
     # MDM requirement
     mkdir /data/cp_log
     chmod 0775 /data/cp_log
@@ -36,7 +39,6 @@ on init
     rmdir /tombstones/efs
     mkdir /tombstones/efs 771 system system
 
-on post-fs-data
     chown system radio /dev/block/platform/dw_mmc/by-name
     chmod 0775 /dev/block/platform/dw_mmc/by-name
 
@@ -51,7 +53,7 @@ on post-fs-data
 
     # Allow QMUX daemon to assign port open wait time
     chown radio radio /sys/devices/virtual/hsicctl/hsicctl0/modem_wait
-    chmod 666 /sys/devices/virtual/hsicctl/hsicctl0/modem_wait
+    chmod 0666 /sys/devices/virtual/hsicctl/hsicctl0/modem_wait
 
     # To prevent out of order acknowledgements from making
     # connection tracking to treat them as not belonging to
@@ -76,10 +78,6 @@ on post-fs-data
     restorecon /tombstones/qcks/efs3.bin
     restorecon /tombstones/qcks/temp.dump
 
-    # for AT distributor
-    chown system radio /sys/module/cpuidle_exynos4/parameters/enable_mask
-    chmod 0664 /sys/module/cpuidle_exynos4/parameters/enable_mask
-
     # Waketime fot fast dormancy
     chown system radio /sys/devices/platform/mdm_hsic_pm0/waketime
     chmod 0660 /sys/devices/platform/mdm_hsic_pm0/waketime
@@ -89,6 +87,19 @@ on post-fs-data
 
     # make param block device link for SysScope
     symlink /dev/block/mmcblk0p7 /dev/block/param
+
+    #Create directories for gpsone_daemon services
+    mkdir /data/misc/gpsone_d 0770 system gps
+
+    #Create directories for QuIPS
+    mkdir /data/misc/quipc 0770 system gps
+
+    #Create directories for Location services
+    mkdir /data/misc/location 0770 gps gps
+    mkdir /data/misc/location/mq 0770 gps gps
+    mkdir /data/misc/location/xtwifi 0770 gps gps
+
+    chmod 0755 /proc/cmdline
 
 on boot
 
@@ -114,9 +125,6 @@ service diag_uart_log /system/bin/diag_uart_log
     user root
     group radio
 
-service netmgrd /system/bin/netmgrd
-    class late_start
-
 service SMD-daemon /system/bin/smdexe
     class main
     user root
@@ -128,13 +136,6 @@ service qc_kickstart /system/bin/qcks s
     seclabel u:r:kickstart:s0
     group radio cache inet misc audio sdcard_rw log
 
-service ril-daemon /system/bin/rild
-    class main
-    socket rild stream 666 root radio
-    socket rild-debug stream 666 radio system
-    user root
-    group radio cache inet misc audio sdcard_rw qcom_oncrpc diag log sdcard_r
-
 #For EncryptionMode - remove disabled, Modify class main
 service qmiproxy /system/bin/qmiproxy
     class main
@@ -143,15 +144,5 @@ service qmiproxy /system/bin/qmiproxy
 
 service qmuxd /system/bin/qmuxd
     class main
-    user root
-    seclabel u:r:qmux:s0
-    group radio log audio bluetooth gps log
-
-# TVout
-service TvoutService_C /system/bin/bintvoutservice
-    class main
     user system
-    group graphics
-
-on property:ro.tvout.enable=false
-    stop TvoutService_C
+    group radio log audio bluetooth gps log

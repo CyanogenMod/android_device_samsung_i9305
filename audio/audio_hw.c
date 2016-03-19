@@ -366,7 +366,6 @@ static int set_route_by_array(struct mixer *mixer, struct route_setting *route,
 void select_devices(struct m0_audio_device *adev)
 {
     int i;
-
     if (adev->active_out_device == adev->out_device && adev->active_in_device == adev->in_device)
     return;
 
@@ -375,27 +374,31 @@ void select_devices(struct m0_audio_device *adev)
 
     /* Turn on new devices first so we don't glitch due to powerdown... */
     for (i = 0; i < adev->num_dev_cfgs; i++)
-    if ((adev->out_device & adev->dev_cfgs[i].mask) &&
-        !(adev->active_out_device & adev->dev_cfgs[i].mask))
+    if (((adev->out_device & adev->dev_cfgs[i].mask) &&
+        !(adev->active_out_device & adev->dev_cfgs[i].mask)) &&
+        !(adev->dev_cfgs[i].mask & AUDIO_DEVICE_BIT_IN)) {
         set_route_by_array(adev->mixer, adev->dev_cfgs[i].on,
                    adev->dev_cfgs[i].on_len);
-
+}
     for (i = 0; i < adev->num_dev_cfgs; i++)
-    if ((adev->in_device & adev->dev_cfgs[i].mask) &&
-        !(adev->active_in_device & adev->dev_cfgs[i].mask))
+    if (((adev->in_device & adev->dev_cfgs[i].mask) &&
+        !(adev->active_in_device & adev->dev_cfgs[i].mask)) &&
+        (adev->dev_cfgs[i].mask & AUDIO_DEVICE_BIT_IN))
         set_route_by_array(adev->mixer, adev->dev_cfgs[i].on,
                    adev->dev_cfgs[i].on_len);
 
     /* ...then disable old ones. */
     for (i = 0; i < adev->num_dev_cfgs; i++)
-    if (!(adev->out_device & adev->dev_cfgs[i].mask) &&
-        (adev->active_out_device & adev->dev_cfgs[i].mask))
+    if ((!(adev->out_device & adev->dev_cfgs[i].mask) &&
+        (adev->active_out_device & adev->dev_cfgs[i].mask)) &&
+        !(adev->dev_cfgs[i].mask & AUDIO_DEVICE_BIT_IN))
         set_route_by_array(adev->mixer, adev->dev_cfgs[i].off,
                    adev->dev_cfgs[i].off_len);
 
     for (i = 0; i < adev->num_dev_cfgs; i++)
-    if (!(adev->in_device & adev->dev_cfgs[i].mask) &&
-        (adev->active_in_device & adev->dev_cfgs[i].mask))
+    if ((!(adev->in_device & adev->dev_cfgs[i].mask) &&
+        (adev->active_in_device & adev->dev_cfgs[i].mask)) &&
+        (adev->dev_cfgs[i].mask & AUDIO_DEVICE_BIT_IN))
         set_route_by_array(adev->mixer, adev->dev_cfgs[i].off,
                    adev->dev_cfgs[i].off_len);
 
@@ -540,8 +543,8 @@ static void set_incall_device(struct m0_audio_device *adev)
         case AUDIO_DEVICE_OUT_DGTL_DOCK_HEADSET:
         case AUDIO_DEVICE_OUT_AUX_DIGITAL:
             rx_dev_id = DEVICE_SPEAKER_MONO_RX_ACDB_ID;
-            tx_dev_id = DEVICE_HANDSET_TX_ACDB_ID;
-            voice_index = 7;
+            tx_dev_id = DEVICE_SPEAKER_TX_ACDB_ID;
+            voice_index = 9;
             break;
         case AUDIO_DEVICE_OUT_WIRED_HEADSET:
         case AUDIO_DEVICE_OUT_WIRED_HEADPHONE:
@@ -681,7 +684,7 @@ static void select_mode(struct m0_audio_device *adev)
                     ALOGE("%s: csd_stop_voice error %d\n", __func__, err);
                 }
             }
-
+            adev->in_device = AUDIO_DEVICE_NONE;
             force_all_standby(adev);
             select_output_device(adev);
             select_input_device(adev);
@@ -781,14 +784,6 @@ static void select_output_device(struct m0_audio_device *adev)
         } else {
             ALOGD("%s: set voicecall route: default_input_disable", __func__);
             set_bigroute_by_array(adev->mixer, default_input_disable, 1);
-        }
-
-        if (speaker_on) {
-            ALOGD("%s: set voicecall route: speaker_output", __func__);
-            set_bigroute_by_array(adev->mixer, speaker_output, 1);
-        } else {
-            ALOGD("%s: set voicecall route: speaker_output_disable", __func__);
-            set_bigroute_by_array(adev->mixer, speaker_output_disable, 1);
         }
 
         if (headset_on) {

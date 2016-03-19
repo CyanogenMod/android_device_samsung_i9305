@@ -6,6 +6,24 @@ on init
     mkdir /dev/pipes 0771 shell shell
 
     # MDM requirement
+    mkdir /data/cp_log
+    chmod 0775 /data/cp_log
+    chown system radio /data/cp_log
+
+    mkdir /dev/block/modem
+    symlink /dev/block/platform/dw_mmc/by-name/m9kefs1 /dev/block/modem/m9kefs1
+    symlink /dev/block/platform/dw_mmc/by-name/m9kefs2 /dev/block/modem/m9kefs2
+    symlink /dev/block/platform/dw_mmc/by-name/m9kefs3 /dev/block/modem/m9kefs3
+    symlink /dev/block/platform/dw_mmc/by-name/ /dev/block/modem/dump_path
+    chown system radio /dev/block/modem/m9kefs1
+    chmod 0775 /dev/block/modem/m9kefs1
+    chown system radio /dev/block/modem/m9kefs2
+    chmod 0775 /dev/block/modem/m9kefs2
+    chown system radio /dev/block/modem/m9kefs3
+    chmod 0775 /dev/block/modem/m9kefs3
+    chown system radio /dev/block/modem/dump_path
+    chmod 0775 /dev/block/modem/dump_path
+
     mkdir /firmware 0771 system system
     chown system system /tombstones
     chmod 0775 /tombstones
@@ -24,8 +42,8 @@ on post-fs-data
 
     #QCRIL
     #Create QMUX deamon socket area
-    mkdir /dev/socket/qmux_radio 0770 radio radio
-    chmod 2770 /dev/socket/qmux_radio
+    mkdir /dev/socket/qmux_radio 0777 radio radio
+    chmod 2777 /dev/socket/qmux_radio
     mkdir /dev/socket/qmux_audio 0770 media audio
     chmod 2770 /dev/socket/qmux_audio
     mkdir /dev/socket/qmux_gps 0770 gps gps
@@ -33,6 +51,7 @@ on post-fs-data
 
     # Allow QMUX daemon to assign port open wait time
     chown radio radio /sys/devices/virtual/hsicctl/hsicctl0/modem_wait
+    chmod 666 /sys/devices/virtual/hsicctl/hsicctl0/modem_wait
 
     # To prevent out of order acknowledgements from making
     # connection tracking to treat them as not belonging to
@@ -49,6 +68,13 @@ on post-fs-data
     restorecon /efs/FactoryApp/serial_no
     restorecon /efs/imei/mps_code.dat
     restorecon /efs/wifi/.mac.info
+    restorecon /tombstones
+    restorecon /tombstones/qcks
+    restorecon /tombstones/qcks/acdb.bin
+    restorecon /tombstones/qcks/efs1.bin
+    restorecon /tombstones/qcks/efs2.bin
+    restorecon /tombstones/qcks/efs3.bin
+    restorecon /tombstones/qcks/temp.dump
 
     # for AT distributor
     chown system radio /sys/module/cpuidle_exynos4/parameters/enable_mask
@@ -78,7 +104,7 @@ on property:sys.boot_completed=1
 
 # AT Distributor for factory test
 service at_distributor /system/bin/at_distributor
-    class main
+    class late_start
     user root
     group radio log
 
@@ -102,11 +128,12 @@ service qc_kickstart /system/bin/qcks s
     seclabel u:r:kickstart:s0
     group radio cache inet misc audio sdcard_rw log
 
-service secril-daemon /system/bin/sec-ril
+service ril-daemon /system/bin/rild
     class main
+    socket rild stream 666 root radio
+    socket rild-debug stream 666 radio system
     user root
-    seclabel u:r:secril-daemon:s0
-    group radio cache inet misc audio sdcard_rw qcom_diag log
+    group radio cache inet misc audio sdcard_rw qcom_oncrpc diag log sdcard_r
 
 #For EncryptionMode - remove disabled, Modify class main
 service qmiproxy /system/bin/qmiproxy
@@ -116,15 +143,9 @@ service qmiproxy /system/bin/qmiproxy
 
 service qmuxd /system/bin/qmuxd
     class main
-    user system
+    user root
     seclabel u:r:qmux:s0
     group radio log audio bluetooth gps log
-
-#start GNSS/Sensor interface daemon
-service gsiff_daemon /system/bin/gsiff_daemon
-    class late_start
-    user system
-    group qcom_oncrpc gps
 
 # TVout
 service TvoutService_C /system/bin/bintvoutservice

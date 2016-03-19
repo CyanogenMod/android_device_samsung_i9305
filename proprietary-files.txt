@@ -1,13 +1,10 @@
 system/bin/at_distributor
 system/bin/efsks
-system/bin/gsiff_daemon
 system/bin/ks
-system/bin/netmgrd
 system/bin/qcks
 system/bin/qmiproxy
 system/bin/qmuxd
 system/bin/rild
-system/bin/sec-ril
 system/bin/smdexe
 system/etc/Diag.cfg
 system/etc/Diag_zero.cfg
@@ -16,6 +13,7 @@ system/lib/libatparser.so
 system/lib/libcsd-client.so
 system/lib/libdiag.so
 system/lib/libdsi_netctrl.so
+system/lib/libdss.so
 system/lib/libdsutils.so
 system/lib/libfactoryutil.so
 system/lib/libidl.so
@@ -33,9 +31,10 @@ system/lib/libqmi_csi.so
 system/lib/libqmi_encdec.so
 system/lib/libqmiservices.so
 system/lib/libril.so
-system/lib/libril-qc-qmi-1.so
 system/lib/libril-qcril-hook-oem.so
 system/lib/libsecnativefeature.so
 system/lib/libsecril-client.so
+system/lib/libsec-ril.so
 system/lib/hw/sensors.smdk4x12.so
 system/usr/keylayout/sec_touchkey.kl
+

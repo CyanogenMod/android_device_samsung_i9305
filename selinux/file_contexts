@@ -3,9 +3,6 @@
 /dev/ump                                u:object_r:mali_device:s0
 /dev/fimg2d                             u:object_r:mali_device:s0
 
-# NFC
-/dev/pn544                              u:object_r:nfc_device:s0
-
 # RIL
 /dev/mdm                                u:object_r:radio_device:s0
 /dev/hsicctl[0-3]*                      u:object_r:radio_device:s0
@@ -35,8 +32,9 @@
 /system/vendor/firmware/mfc_fw.bin      u:object_r:firmware_mfc:s0
 /system/vendor/firmware/fimc_is_fw.bin  u:object_r:firmware_camera:s0
 /data/cfw(/.*)?                         u:object_r:firmware_camera:s0
+/tombstones                             u:object_r:system_data_file:s0
+/tombstones(/.*)?                       u:object_r:tombstone_data_file:s0
 /tombstones/qcks(/.*)?                  u:object_r:kickstart_data_file:s0
-/tombstones(/.*)?	                    u:object_r:tombstone_data_file:s0
 
 # Vibrator
 /dev/tspdrv                             u:object_r:input_device:s0
@@ -53,11 +51,9 @@
 
 # Binaries
 /system/bin/qmuxd                u:object_r:qmux_exec:s0
-/system/bin/netmgrd              u:object_r:netmgrd_exec:s0
 /system/bin/efsks                u:object_r:kickstart_exec:s0
 /system/bin/ks                   u:object_r:kickstart_exec:s0
 /system/bin/qcks                 u:object_r:kickstart_exec:s0
-/system/bin/sec-ril              u:object_r:secril-daemon_exec:s0
 
 # Sockets
 /dev/socket/qmux_audio(/.*)?     u:object_r:qmuxd_socket:s0
